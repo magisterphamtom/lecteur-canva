@@ -1,0 +1,82 @@
+/* ---------- Fenêtre de lecture ---------- */
+.lecteur-canva .window-content {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.lecteur-canva .lc-root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.lecteur-canva .lc-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-border, #7a7971);
+}
+.lecteur-canva .lc-toolbar button {
+  flex: 0 0 auto;
+  width: auto;
+  white-space: nowrap;
+}
+.lecteur-canva .lc-toolbar select { flex: 0 1 260px; }
+.lecteur-canva .lc-title { font-weight: bold; }
+.lecteur-canva .lc-spacer { flex: 1; }
+.lecteur-canva .lc-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: #1e1e1e;
+}
+.lecteur-canva .lc-stage iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.lecteur-canva .lc-message {
+  margin: 0;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: #e8e4d8;
+  font-size: 1.1em;
+}
+
+/* ---------- Configuration ---------- */
+.lecteur-canva-config .window-content {
+  padding: 10px;
+}
+.lecteur-canva-config .lc-config {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lecteur-canva-config .lc-row {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 6px 10px;
+  align-items: center;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--color-border, #7a7971);
+  border-radius: 6px;
+}
+.lecteur-canva-config .lc-row .lc-remove {
+  grid-column: 2;
+  justify-self: end;
+  width: auto;
+}
+.lecteur-canva-config .lc-footer {
+  display: flex;
+  gap: 8px;
+}
+.lecteur-canva-config .lc-footer button { flex: 1; }
+
+/* ---------- Bouton onglet Journal ---------- */
+.lc-open-btn { white-space: nowrap; }
