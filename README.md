@@ -1,3 +1,5 @@
+<p align="center"><img src=".github/banner.png" alt="lecteur-canva" width="100%"></p>
+
 # Lecteur Canva
 
 Module Foundry VTT (v13 / v14) qui affiche un ou plusieurs tableaux Canva — timeline, handouts, tableau d'enquête — dans une fenêtre Foundry.
