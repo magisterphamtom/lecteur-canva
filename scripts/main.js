@@ -91,15 +91,19 @@ class CanvaViewer extends ApplicationV2 {
 
   static DEFAULT_OPTIONS = {
     id: "lecteur-canva-viewer",
-    classes: ["lecteur-canva"],
     window: { title: "Lecteur Canva", icon: "fa-solid fa-palette", resizable: true },
+    classes: ["lecteur-canva", "lc-habille"],
     position: { width: 1100, height: 750 },
     actions: {
       refresh: CanvaViewer._onRefresh,
       edit: CanvaViewer._onEdit,
       openTab: CanvaViewer._onOpenTab,
       share: CanvaViewer._onShare,
-      configure: CanvaViewer._onConfigure
+      configure: CanvaViewer._onConfigure,
+      zoomIn: function () { this._zoomPar(1.25); },
+      zoomOut: function () { this._zoomPar(1 / 1.25); },
+      zoomFit: function () { this._ajuster(); },
+      interact: function () { this._basculerInteraction(); }
     }
   };
 
@@ -166,15 +170,42 @@ class CanvaViewer extends ApplicationV2 {
     } else if (ctx.view?.error) {
       stage.append(makeMessage(ctx.view.error));
     } else {
+      const plan = document.createElement("div");
+      plan.className = "lc-plan";
       const iframe = document.createElement("iframe");
       iframe.src = ctx.view.url;
       iframe.setAttribute("allowfullscreen", "");
       iframe.setAttribute("allow", "fullscreen");
       iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
-      stage.append(iframe);
+      plan.append(iframe);
+
+      // Calque qui reçoit la molette (zoom) et le glisser (déplacement) au-dessus du Canva
+      const capture = document.createElement("div");
+      capture.className = "lc-capture";
+
+      const zoom = document.createElement("div");
+      zoom.className = "lc-zoom";
+      zoom.append(
+        makeButton("zoomOut", "fa-solid fa-minus", "", "Dézoomer"),
+        Object.assign(document.createElement("span"), { className: "lc-zoom-val", textContent: "100 %" }),
+        makeButton("zoomIn", "fa-solid fa-plus", "", "Zoomer"),
+        makeButton("zoomFit", "fa-solid fa-expand", "", "Ajuster à la fenêtre (double-clic)"),
+        makeButton("interact", "fa-solid fa-arrow-pointer", "", "Cliquer dans le Canva (pages, liens) — la molette ne zoome plus")
+      );
+
+      const aide = document.createElement("div");
+      aide.className = "lc-aide";
+      aide.innerHTML = '<i class="fa-solid fa-computer-mouse"></i> Molette : zoomer · Glisser : déplacer · Double-clic : ajuster';
+
+      stage.append(plan, capture, zoom, aide);
     }
 
-    root.append(bar, stage);
+    // Cadre « table de création » avec repères de coupe autour du Canva
+    const cadre = document.createElement("div");
+    cadre.className = "lc-cadre";
+    cadre.append(stage);
+
+    root.append(bar, cadre);
     return root;
   }
 
@@ -186,8 +217,111 @@ class CanvaViewer extends ApplicationV2 {
     super._onRender?.(context, options);
     this.element.querySelector(".lc-board-select")?.addEventListener("change", ev => {
       this.boardId = ev.currentTarget.value;
+      this.vue = null;
       this.render();
     });
+    this._installerZoom();
+  }
+
+  _onClose(options) {
+    this._observateur?.disconnect();
+    super._onClose?.(options);
+  }
+
+  /* --- Zoom et déplacement (propres à chaque personne) --- */
+
+  static ZOOM_MAX = 6;
+
+  _installerZoom() {
+    this._observateur?.disconnect();
+    const stage = this.element.querySelector(".lc-stage");
+    const capture = stage?.querySelector(".lc-capture");
+    if (!capture) return;
+    this.vue ??= { z: 1, x: 0, y: 0, interact: false };
+
+    capture.addEventListener("wheel", ev => {
+      ev.preventDefault();
+      const r = stage.getBoundingClientRect();
+      const facteur = Math.exp(-ev.deltaY * (ev.deltaMode === 1 ? 0.05 : 0.0015));
+      this._zoomPar(facteur, ev.clientX - r.left, ev.clientY - r.top);
+    }, { passive: false });
+
+    capture.addEventListener("pointerdown", ev => {
+      if (ev.button !== 0 && ev.button !== 1) return;
+      ev.preventDefault();
+      capture.setPointerCapture(ev.pointerId);
+      capture.classList.add("lc-glisse");
+      const depart = { px: ev.clientX, py: ev.clientY, x: this.vue.x, y: this.vue.y };
+      const bouger = e => {
+        this.vue.x = depart.x + (e.clientX - depart.px);
+        this.vue.y = depart.y + (e.clientY - depart.py);
+        this._appliquer();
+      };
+      const lacher = () => {
+        capture.classList.remove("lc-glisse");
+        capture.removeEventListener("pointermove", bouger);
+        capture.removeEventListener("pointerup", lacher);
+        capture.removeEventListener("pointercancel", lacher);
+      };
+      capture.addEventListener("pointermove", bouger);
+      capture.addEventListener("pointerup", lacher);
+      capture.addEventListener("pointercancel", lacher);
+    });
+
+    capture.addEventListener("dblclick", () => this._ajuster());
+
+    // La fenêtre change de taille : on garde le cadrage
+    this._observateur = new ResizeObserver(() => this._appliquer());
+    this._observateur.observe(stage);
+
+    // Petite aide qui s'efface toute seule
+    const aide = stage.querySelector(".lc-aide");
+    setTimeout(() => aide?.classList.add("lc-cache"), 4500);
+
+    this._appliquer();
+  }
+
+  _zoomPar(facteur, cx, cy) {
+    const stage = this.element?.querySelector(".lc-stage");
+    if (!stage || !this.vue) return;
+    const v = this.vue;
+    cx ??= stage.clientWidth / 2;
+    cy ??= stage.clientHeight / 2;
+    const z = Math.min(CanvaViewer.ZOOM_MAX, Math.max(1, v.z * facteur));
+    // Le point sous la souris reste sous la souris
+    v.x = cx - (cx - v.x) * (z / v.z);
+    v.y = cy - (cy - v.y) * (z / v.z);
+    v.z = z;
+    this._appliquer();
+  }
+
+  _ajuster() {
+    if (!this.vue) return;
+    Object.assign(this.vue, { z: 1, x: 0, y: 0 });
+    this._appliquer();
+  }
+
+  _basculerInteraction() {
+    if (!this.vue) return;
+    this.vue.interact = !this.vue.interact;
+    this._appliquer();
+    if (this.vue.interact) ui.notifications.info("Tu peux cliquer dans le Canva. Reclique sur la flèche pour retrouver le zoom à la molette.");
+  }
+
+  /** Agrandit vraiment le Canva (il se redessine net) et le décale ; il couvre toujours la zone. */
+  _appliquer() {
+    const stage = this.element?.querySelector(".lc-stage");
+    const plan = stage?.querySelector(".lc-plan");
+    if (!plan || !this.vue) return;
+    const v = this.vue;
+    const W = stage.clientWidth, H = stage.clientHeight;
+    v.x = Math.min(0, Math.max(W - W * v.z, v.x));
+    v.y = Math.min(0, Math.max(H - H * v.z, v.y));
+    Object.assign(plan.style, { width: `${W * v.z}px`, height: `${H * v.z}px`, left: `${v.x}px`, top: `${v.y}px` });
+    stage.querySelector(".lc-zoom-val").textContent = `${Math.round(v.z * 100)} %`;
+    stage.classList.toggle("lc-zoome", v.z > 1.001);
+    stage.classList.toggle("lc-interagir", v.interact);
+    stage.querySelector('[data-action="interact"]')?.classList.toggle("lc-actif", v.interact);
   }
 
   /* --- Actions (this = l'application) --- */

@@ -1,52 +1,146 @@
-/* ---------- Fenêtre de lecture ---------- */
+/* =====================================================================
+   Lecteur Canva — habillage « table de création »
+   Fond ardoise, liseré dégradé turquoise → violet → corail, repères de coupe,
+   commandes en pastilles. Indépendant des thèmes des autres modules.
+   ===================================================================== */
+.application.lc-habille {
+  --lc-fond: #15161c;
+  --lc-fond2: #1c1d25;
+  --lc-encre: #ecebf3;
+  --lc-pale: #9a9bb0;
+  --lc-trait: rgba(255, 255, 255, .12);
+  --lc-a: #2ec4b6;
+  --lc-b: #8b5cf6;
+  --lc-c: #ff7a59;
+  --lc-degrade: linear-gradient(120deg, var(--lc-a), var(--lc-b) 55%, var(--lc-c));
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: linear-gradient(var(--lc-fond), var(--lc-fond)) padding-box, var(--lc-degrade) border-box;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .55), 0 0 0 1px rgba(0, 0, 0, .4);
+  color: var(--lc-encre);
+  overflow: hidden;
+}
+.application.lc-habille .window-header {
+  background: linear-gradient(180deg, rgba(255,255,255,.04), transparent);
+  border-bottom: 1px solid var(--lc-trait);
+  color: var(--lc-encre);
+  font-family: var(--font-sans, "Signika", sans-serif);
+  letter-spacing: .02em;
+}
+.application.lc-habille .window-header .window-icon {
+  background: var(--lc-degrade); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.application.lc-habille .window-header button { color: var(--lc-pale); }
+.application.lc-habille .window-header button:hover { color: var(--lc-encre); text-shadow: none; }
+
 .lecteur-canva .window-content {
   padding: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: transparent;
+  color: var(--lc-encre);
 }
-.lecteur-canva .lc-root {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
+.lecteur-canva .lc-root { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+/* ---------- Barre d'outils ---------- */
 .lecteur-canva .lc-toolbar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--color-border, #7a7971);
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--lc-trait);
+  background: var(--lc-fond2);
 }
-.lecteur-canva .lc-toolbar button {
-  flex: 0 0 auto;
-  width: auto;
-  white-space: nowrap;
+.lecteur-canva .lc-toolbar button,
+.lecteur-canva .lc-zoom button {
+  flex: 0 0 auto; width: auto; white-space: nowrap;
+  height: 30px; line-height: 28px; padding: 0 12px; margin: 0;
+  border-radius: 999px; border: 1px solid var(--lc-trait);
+  background: rgba(255, 255, 255, .05); color: var(--lc-encre);
+  font-size: 13px; box-shadow: none; transition: background .15s, border-color .15s, transform .1s;
 }
-.lecteur-canva .lc-toolbar select { flex: 0 1 260px; }
-.lecteur-canva .lc-title { font-weight: bold; }
+.lecteur-canva .lc-toolbar button:hover,
+.lecteur-canva .lc-zoom button:hover {
+  background: linear-gradient(var(--lc-fond2), var(--lc-fond2)) padding-box, var(--lc-degrade) border-box;
+  border-color: transparent; text-shadow: none; box-shadow: none;
+}
+.lecteur-canva .lc-toolbar button:active, .lecteur-canva .lc-zoom button:active { transform: scale(.96); }
+.lecteur-canva .lc-toolbar button[data-action="share"] { background: var(--lc-degrade); border-color: transparent; color: #fff; font-weight: 600; }
+.lecteur-canva .lc-toolbar button[data-action="share"]:hover { filter: brightness(1.1); background: var(--lc-degrade); }
+.lecteur-canva .lc-toolbar select {
+  flex: 0 1 260px; height: 30px; border-radius: 999px; padding: 0 12px;
+  background: rgba(255, 255, 255, .05); color: var(--lc-encre); border: 1px solid var(--lc-trait);
+}
+.lecteur-canva .lc-toolbar select option { background: var(--lc-fond2); color: var(--lc-encre); }
+.lecteur-canva .lc-title { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.lecteur-canva .lc-title::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--lc-degrade); box-shadow: 0 0 8px rgba(139, 92, 246, .7); }
 .lecteur-canva .lc-spacer { flex: 1; }
+
+/* ---------- Table de création ---------- */
+.lecteur-canva .lc-cadre {
+  position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column;
+  padding: 16px;
+  background:
+    radial-gradient(rgba(255, 255, 255, .07) 1px, transparent 1.2px) 0 0 / 18px 18px,
+    var(--lc-fond);
+}
+/* Repères de coupe aux quatre coins */
+.lecteur-canva .lc-cadre::before {
+  content: ""; position: absolute; inset: 5px; pointer-events: none;
+  --m: rgba(255, 255, 255, .35);
+  background:
+    linear-gradient(var(--m), var(--m)) 0 0 / 14px 1px no-repeat, linear-gradient(var(--m), var(--m)) 0 0 / 1px 14px no-repeat,
+    linear-gradient(var(--m), var(--m)) 100% 0 / 14px 1px no-repeat, linear-gradient(var(--m), var(--m)) 100% 0 / 1px 14px no-repeat,
+    linear-gradient(var(--m), var(--m)) 0 100% / 14px 1px no-repeat, linear-gradient(var(--m), var(--m)) 0 100% / 1px 14px no-repeat,
+    linear-gradient(var(--m), var(--m)) 100% 100% / 14px 1px no-repeat, linear-gradient(var(--m), var(--m)) 100% 100% / 1px 14px no-repeat;
+}
 .lecteur-canva .lc-stage {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  background: #1e1e1e;
+  position: relative; flex: 1; min-height: 0; overflow: hidden;
+  border-radius: 10px;
+  background: #0f1014;
+  box-shadow: 0 0 0 1px var(--lc-trait), 0 14px 40px rgba(0, 0, 0, .5);
 }
-.lecteur-canva .lc-stage iframe {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
+.lecteur-canva .lc-plan { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.lecteur-canva .lc-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+/* Calque molette / glisser */
+.lecteur-canva .lc-capture { position: absolute; inset: 0; z-index: 2; cursor: zoom-in; }
+.lecteur-canva .lc-stage.lc-zoome .lc-capture { cursor: grab; }
+.lecteur-canva .lc-capture.lc-glisse { cursor: grabbing !important; }
+.lecteur-canva .lc-stage.lc-interagir .lc-capture { pointer-events: none; }
+
+/* Commandes de zoom flottantes */
+.lecteur-canva .lc-zoom {
+  position: absolute; right: 12px; bottom: 12px; z-index: 3;
+  display: flex; align-items: center; gap: 4px; padding: 4px;
+  border-radius: 999px; border: 1px solid var(--lc-trait);
+  background: rgba(21, 22, 28, .78); backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
 }
+.lecteur-canva .lc-zoom button { width: 30px; padding: 0; text-align: center; }
+.lecteur-canva .lc-zoom button i { margin: 0; }
+.lecteur-canva .lc-zoom button.lc-actif { background: var(--lc-degrade); border-color: transparent; color: #fff; }
+.lecteur-canva .lc-zoom-val { min-width: 52px; text-align: center; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--lc-pale); }
+
+/* Aide qui s'efface */
+.lecteur-canva .lc-aide {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 3; pointer-events: none;
+  padding: 6px 14px; border-radius: 999px; font-size: 12px; white-space: nowrap;
+  background: rgba(21, 22, 28, .82); color: var(--lc-encre); border: 1px solid var(--lc-trait);
+  transition: opacity .6s, transform .6s;
+}
+.lecteur-canva .lc-aide i { margin-right: 4px; color: var(--lc-a); }
+.lecteur-canva .lc-aide.lc-cache { opacity: 0; transform: translate(-50%, 8px); }
+
 .lecteur-canva .lc-message {
-  margin: 0;
-  padding: 3rem 2rem;
-  text-align: center;
-  color: #e8e4d8;
-  font-size: 1.1em;
+  margin: auto; max-width: 520px; padding: 2.5rem 2rem; text-align: center;
+  color: var(--lc-encre); font-size: 1.05em; line-height: 1.5;
 }
+.lecteur-canva .lc-message::before {
+  content: "\f53f"; font-family: "Font Awesome 6 Pro", "Font Awesome 6 Free"; font-weight: 900;
+  display: block; font-size: 38px; margin-bottom: 12px;
+  background: var(--lc-degrade); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.lecteur-canva .lc-stage:has(.lc-message) { display: flex; }
 
 /* ---------- Configuration ---------- */
 .lecteur-canva-config .window-content {

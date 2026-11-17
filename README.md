@@ -31,6 +31,15 @@ Le réglage **Les joueurs peuvent modifier** affiche ou masque le bouton « Modi
 - Raccourci clavier, à définir dans *Configurer les contrôles* ;
 - Macro : `game.modules.get("lecteur-canva").api.open()`.
 
+## Zoomer et se déplacer
+
+Chacun règle son propre zoom, sans gêner les autres :
+
+- **Molette** : zoomer ou dézoomer, autour du pointeur de la souris. Le Canva est vraiment agrandi, il reste net.
+- **Glisser** (clic maintenu) : se déplacer dans le tableau zoomé.
+- **Double-clic** ou bouton ⤢ : revenir à la vue entière.
+- Pastille en bas à droite : −, pourcentage, +, ajuster, et la **flèche** pour cliquer dans le Canva (changer de page, suivre un lien). Tant que la flèche est active, la molette ne zoome plus ; recliquer dessus pour retrouver le zoom.
+
 ## Dépannage
 
 - **Cadre blanc ou « refus de connexion »** : le lien de lecture n'est pas un lien d'intégration. Refais *Partager → Intégrer*.
